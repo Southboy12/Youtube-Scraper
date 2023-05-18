@@ -1,9 +1,10 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from pprint import pprint
 import time
 import pandas as pd
+import smtplib
+import os
 
 YOUTUBE_TRENDING_URL = 'https://www.youtube.com/feed/trending'
 
@@ -76,18 +77,48 @@ def get_video(driver):
   if videos_df.shape[0] > 90:
     videos_df.to_csv('Trending.csv', index=None)
   else:
-    get_video(driver)    
+    get_video(driver)   
+
+def send_email():
+  
+  try:
+    server_ssl = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server_ssl.ehlo()
+
+    SENDER_EMAIL = 'rapidapitest10@gmail.com'
+    RECEIVER_EMAIL = 'rapidapitest10@gmail.com' 
+    SENDER_PASSWORD = os.environ['GMAIL_PASSWORD']
+  
+    subject = 'Test message from Replit'
+    body = 'Hey, this is a test from Replit  (live workshop)'
+  
+    email_text = f"""
+    From: {SENDER_EMAIL}
+    To: {RECEIVER_EMAIL}
+    Subject: {subject}
+    
+    {body}
+    """
+
+    server_ssl.login(SENDER_EMAIL, SENDER_PASSWORD)
+    server_ssl.sendmail(SENDER_EMAIL, RECEIVER_EMAIL, email_text)
+    server_ssl.close()
+    
+  except:
+    print('Something went wrong...')
 
 def parent_func():
-  print('====Getting Browser====')
+  print('==== Getting Browser ====')\n
   driver = get_driver()
-  print('====Browser Ready====')
-  print('====Load all the videos====')
+  print('==== Browser Ready ====')\n
+  print('==== Load all the videos ====')\n
   load_all_pages(driver)
-  print('====All videos loaded')
-  print('====scraping data====')
+  print('==== All videos loaded ====')\n
+  print('==== scraping data ====') \n
   get_video(driver)
-  print('====Successfully scraped and converted to csv====')
+  print('==== Successfully scraped and converted to csv ====')\n
+  print("==== Send an email ====")
+  send_email()
   
 
 if __name__ == '__main__':
