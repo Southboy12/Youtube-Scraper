@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from pprint import pprint
+import time
+import pandas as pd
 
 YOUTUBE_TRENDING_URL = 'https://www.youtube.com/feed/trending'
 
@@ -13,6 +15,21 @@ def get_driver():
   driver = webdriver.Chrome(options=chrome_options)
   return driver
 
+def load_all_pages(driver):
+  WAIT_IN_SECONDS = 5
+  last_height = driver.execute_script("return document.documentElement.scrollHeight")
+  
+  while True:
+      # Scroll to the bottom of page
+      driver.execute_script("window.scrollTo(0, arguments[0]);", last_height)
+      # Wait for new videos to show up
+      time.sleep(WAIT_IN_SECONDS)
+      
+      # Calculate new document height and compare it with last height
+      new_height = driver.execute_script("return document.documentElement.scrollHeight")
+      if new_height == last_height:
+          break
+      last_height = new_height
 
 def get_video(driver):
   driver.get(YOUTUBE_TRENDING_URL)
@@ -54,8 +71,24 @@ def get_video(driver):
       'channel_url' : channel_url
     }
     videos.append(video_dict)
-  pprint(videos)
+  videos_df = pd.DataFrame(videos)
+  print(videos_df.shape)
+  if videos_df.shape[0] > 90:
+    videos_df.to_csv('Trending.csv', index=None)
+  else:
+    get_video(driver)    
+
+def parent_func():
+  print('====Getting Browser====')
+  driver = get_driver()
+  print('====Browser Ready====')
+  print('====Load all the videos====')
+  load_all_pages(driver)
+  print('====All videos loaded')
+  print('====scraping data====')
+  get_video(driver)
+  print('====Successfully scraped and converted to csv====')
+  
 
 if __name__ == '__main__':
-  driver = get_driver()
-  get_video(driver)
+  parent_func()
